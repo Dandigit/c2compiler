@@ -540,6 +540,7 @@ private:
 //   elemsof(type/var)
 //   enum_min(type/var)
 //   enum_max(type/var)
+//   offsetof(type, var)
 class BuiltinExpr : public Expr {
 public:
     enum BuiltinKind {
@@ -547,6 +548,7 @@ public:
         BUILTIN_ELEMSOF,
         BUILTIN_ENUM_MIN,
         BUILTIN_ENUM_MAX,
+        BUILTIN_OFFSETOF,
     };
     static const char* Str(BuiltinKind kind);
 
@@ -558,12 +560,23 @@ public:
         builtinExprBits.builtinKind = kind_;
         setCTC(CTC_FULL);
     }
+    BuiltinExpr(SourceLocation loc_, QualType structType_, Expr* memberExpr_)
+        : Expr(EXPR_BUILTIN, loc_, true)
+        , expr(memberExpr_)
+        , structType(structType_)
+        , value(64, false)
+    {
+        builtinExprBits.builtinKind = BUILTIN_OFFSETOF;
+        setCTC(CTC_FULL);
+    }
     static bool classof(const Expr* E) {
         return E->getKind() == EXPR_BUILTIN;
     }
     void print(StringBuilder& buffer, unsigned indent) const;
 
     Expr* getExpr() const { return expr; }
+    QualType getStructType() const { return structType; }
+    void setStructType(QualType Q) { structType = Q; }
     BuiltinKind getBuiltinKind() const {
         return static_cast<BuiltinKind>(builtinExprBits.builtinKind);
     }
@@ -575,6 +588,7 @@ public:
     }
 private:
     Expr* expr;
+    QualType structType;    // only for offsetof
     llvm::APSInt value;
 };
 

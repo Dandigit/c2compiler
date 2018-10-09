@@ -119,6 +119,7 @@ private:
     bool analyseSizeOfExpr(BuiltinExpr* expr);
     QualType analyseElemsOfExpr(BuiltinExpr* B);
     QualType analyseEnumMinMaxExpr(BuiltinExpr* B, bool isMin);
+    void analyseOffsetof(BuiltinExpr* expr);
     void analyseArrayType(VarDecl* V, QualType T);
     void analyseArraySizeExpr(ArrayType* AT);
 

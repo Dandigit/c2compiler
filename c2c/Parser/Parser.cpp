@@ -874,6 +874,8 @@ C2::ExprResult Parser::ParseCastExpression(bool isUnaryExpression,
         return ParseEnumMinMax(true);
     case tok::kw_enum_max:
         return ParseEnumMinMax(false);
+    case tok::kw_offsetof:
+        return ParseOffsetof();
     case tok::kw_cast:
         return ParseExplicitCastExpression();
     case tok::plusplus:      // unary-expression: '++' unary-expression [C99]
@@ -1471,8 +1473,8 @@ C2::ExprResult Parser::ParseSizeof()
     return Actions.ActOnBuiltinExpression(Loc, Res.get(), BuiltinExpr::BUILTIN_SIZEOF);
 }
 
-/// Syntax:
-///  'elemsof' '(' type-name ')'
+// Syntax:
+//  'elemsof' '(' type-name ')'
 C2::ExprResult Parser::ParseElemsof()
 {
     LOG_FUNC
@@ -1513,6 +1515,36 @@ C2::ExprResult Parser::ParseEnumMinMax(bool isMin)
         isMin ? BuiltinExpr::BUILTIN_ENUM_MIN : BuiltinExpr::BUILTIN_ENUM_MAX);
 }
 
+// Syntax:
+//  'offsetof' ( type-name , full-identifier )
+C2::ExprResult Parser::ParseOffsetof()
+{
+    LOG_FUNC
+    SourceLocation Loc = ConsumeToken();
+
+    if (ExpectAndConsume(tok::l_paren)) return ExprError();
+
+    if (Tok.isNot(tok::identifier)) {
+        Diag(Tok, diag::err_expected) << tok::identifier;
+        return ExprError();
+    }
+    // TODO dont use this? (gives TypeExpr that should not remain in AST?)
+    ExprResult type = ParseFullIdentifier();
+
+    if (ExpectAndConsume(tok::comma)) return ExprError();
+
+    if (Tok.isNot(tok::identifier)) {
+        Diag(Tok, diag::err_expected) << tok::identifier;
+        return ExprError();
+    }
+
+    ExprResult member = ParseExpression(); //ParseFullIdentifier();
+    // TODO support array subscripts?
+
+    if (ExpectAndConsume(tok::r_paren)) return ExprError();
+
+    return Actions.ActOnOffsetof(Loc, type.get(), member.get());
+}
 // Syntax:
 // identifier
 C2::ExprResult Parser::ParseIdentifier() {

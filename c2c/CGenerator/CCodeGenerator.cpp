@@ -373,6 +373,15 @@ void CCodeGenerator::EmitBuiltinExpr(const Expr* E, StringBuilder& output) {
     case BuiltinExpr::BUILTIN_ENUM_MAX:
         output.number(10, B->getValue().getSExtValue());
         break;
+    case BuiltinExpr::BUILTIN_OFFSETOF:
+        // TODO need to include <stddef.h>
+        output << "offsetof(";
+        EmitTypePreName(B->getStructType(), output);
+        EmitTypePostName(B->getStructType(), output);
+        output << ", ";
+        EmitExpr(B->getExpr(), output);
+        output << ')';
+        break;
     }
 }
 

@@ -1,0 +1,15 @@
+// @warnings{no-unused}
+module test;
+
+type Struct struct {
+    u32 m;
+    struct sub {
+        u32 m2;
+    }
+}
+
+func void test1() {
+    u32 off1 = offsetof(Struct, m);
+    u32 off2 = offsetof(test.Struct, sub.m2);
+}
+

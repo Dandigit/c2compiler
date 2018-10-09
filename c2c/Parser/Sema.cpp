@@ -197,7 +197,7 @@ Sema::Sema(SourceManager& sm_, DiagnosticsEngine& Diags_, c2lang::Preprocessor& 
 	checkSize(BinaryOperator, 32);
 	checkSize(ConditionalOperator, 48);
 	checkSize(UnaryOperator, 24);
-	checkSize(BuiltinExpr, 40);
+	checkSize(BuiltinExpr, 48);
 	checkSize(ArraySubscriptExpr, 32);
 	checkSize(MemberExpr, 40);
 	checkSize(ParenExpr, 32);
@@ -1184,6 +1184,21 @@ C2::ExprResult Sema::ActOnBuiltinExpression(SourceLocation Loc, Expr* expr, Buil
 #endif
     MEM_EXPR(EXPR_BUILTIN);
     return ExprResult(new (Context) BuiltinExpr(Loc, expr, kind_));
+}
+
+C2::ExprResult Sema::ActOnOffsetof(SourceLocation Loc, Expr* type, Expr* memberExpr) {
+    assert(typeExpr);
+    assert(memberExpr);
+#ifdef SEMA_DEBUG
+    std::cerr << COL_SEMA << "SEMA: offsetof at ";
+    Loc.dump(SourceMgr);
+    std::cerr << ANSI_NORMAL"\n";
+#endif
+    MEM_EXPR(EXPR_BUILTIN);
+    TypeExpr* typeExpr = cast<TypeExpr>(type);
+    BuiltinExpr* B = new (Context) BuiltinExpr(Loc, typeExpr->getType(), memberExpr);
+    Context.freeTypeExpr(typeExpr);
+    return ExprResult(B);
 }
 
 C2::ExprResult Sema::ActOnArraySubScriptExpr(SourceLocation RLoc, Expr* Base, Expr* Idx) {

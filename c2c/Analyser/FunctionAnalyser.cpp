@@ -1186,6 +1186,24 @@ QualType FunctionAnalyser::analyseEnumMinMaxExpr(BuiltinExpr* B, bool isMin) {
     return decl->getType();
 }
 
+void FunctionAnalyser::analyseOffsetof(BuiltinExpr* B) {
+    LOG_FUNC
+
+    QualType structType = TR.resolveType(B->getStructType(), false);
+    if (!structType.isValid()) return;
+
+    if (!structType.isStructType()) {
+        StringBuilder buf;
+        structType.DiagName(buf);
+        Diag(B->getLocation(), diag::err_offsetof_non_struct_union) << buf;
+        return;
+    }
+    B->setStructType(structType);
+
+    Expr* member = B->getExpr();
+    // can be IdentifierExpr or MemberExpr otherwise bail
+}
+
 // sets ArrayType sizes recursively if sizeExpr is constant
 // NOTE: doesn't check any initExpr itself
 void FunctionAnalyser::analyseArrayType(VarDecl* V, QualType T) {
@@ -1543,6 +1561,9 @@ QualType FunctionAnalyser::analyseBuiltinExpr(Expr* expr) {
         return analyseEnumMinMaxExpr(B, true);
     case BuiltinExpr::BUILTIN_ENUM_MAX:
         return analyseEnumMinMaxExpr(B, false);
+    case BuiltinExpr::BUILTIN_OFFSETOF:
+        analyseOffsetof(B);
+        break;
     }
 
     return Type::UInt32();

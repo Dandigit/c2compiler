@@ -1,0 +1,11 @@
+// @warnings{no-unused}
+module test;
+
+type State enum u8 {
+    AA,
+}
+
+func void test1() {
+    u32 off1 = offsetof(State, m);  // @error{offsetof requires struct or union type, '(enum)State' (aka 'u8') invalid}
+}
+
