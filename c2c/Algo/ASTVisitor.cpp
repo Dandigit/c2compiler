@@ -298,6 +298,7 @@ void ASTVisitor::checkExpr(const Expr* E) {
         checkExpr(cast<UnaryOperator>(E)->getExpr());
         break;
     case EXPR_BUILTIN:
+        // TODO FIX
         checkExpr(cast<BuiltinExpr>(E)->getExpr());
         break;
     case EXPR_ARRAYSUBSCRIPT:

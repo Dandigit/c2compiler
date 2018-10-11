@@ -1186,22 +1186,75 @@ QualType FunctionAnalyser::analyseEnumMinMaxExpr(BuiltinExpr* B, bool isMin) {
     return decl->getType();
 }
 
+QualType FunctionAnalyser::findStructMember(QualType T, IdentifierExpr* member) {
+    assert(T.isStructType());
+    LOG_FUNC;
+
+    const StructType* ST = cast<StructType>(T);
+    StructTypeDecl* S = ST->getDecl();
+
+    Decl* match = S->findMember(member->getName());
+    if (!match) {
+        char temp1[MAX_LEN_TYPENAME];
+        StringBuilder buf1(MAX_LEN_TYPENAME, temp1);
+        T->DiagName(buf1);
+
+        char temp2[MAX_LEN_VARNAME];
+        StringBuilder buf2(MAX_LEN_VARNAME, temp2);
+        buf2 << '\'' << member->getName() << '\'';
+        Diag(member->getLocation(), diag::err_no_member) << temp2 << temp1;
+        return QualType();
+
+    }
+
+    IdentifierExpr::RefType ref = IdentifierExpr::REF_STRUCT_MEMBER;
+
+    // NOTE: access of struct-function is not a dereference
+    // TODO
+    //if (CurrentFunction->getModule() != S->getModule() && S->hasAttribute(ATTR_OPAQUE)) {
+    //    Diag(S->getLocation(), diag::err_deref_opaque) << S->isStruct() << S->DiagName();
+    //   return QualType();
+    //}
+
+    match->setUsed();
+    member->setDecl(match, ref);
+    member->setType(match->getType());
+    return match->getType();
+}
+
 void FunctionAnalyser::analyseOffsetof(BuiltinExpr* B) {
     LOG_FUNC
 
-    QualType structType = TR.resolveType(B->getStructType(), false);
-    if (!structType.isValid()) return;
+    QualType T = TR.resolveType(B->getStructType(), false);
+    if (!T.isValid()) return;
 
-    if (!structType.isStructType()) {
+    if (!T.isStructType()) {
         StringBuilder buf;
-        structType.DiagName(buf);
+        T.DiagName(buf);
         Diag(B->getLocation(), diag::err_offsetof_non_struct_union) << buf;
         return;
     }
-    B->setStructType(structType);
+    B->setStructType(T);
 
     Expr* member = B->getExpr();
-    // can be IdentifierExpr or MemberExpr otherwise bail
+    switch (member->getKind()) {
+    case EXPR_IDENTIFIER:
+    {
+        QualType MT = findStructMember(T, cast<IdentifierExpr>(member));
+        if (!MT.isValid()) return;
+        break;
+    }
+    case EXPR_MEMBER:
+    {
+        // TODO later
+        return;
+        //MemberExpr* M = cast<MemberExpr>(member);
+        //analyseStructMember(T, M, RHS, false);
+    }
+    default:
+        // TODO handle error
+        break;
+    }
 }
 
 // sets ArrayType sizes recursively if sizeExpr is constant

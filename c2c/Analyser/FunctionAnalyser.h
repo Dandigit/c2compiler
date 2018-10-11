@@ -119,6 +119,7 @@ private:
     bool analyseSizeOfExpr(BuiltinExpr* expr);
     QualType analyseElemsOfExpr(BuiltinExpr* B);
     QualType analyseEnumMinMaxExpr(BuiltinExpr* B, bool isMin);
+    QualType findStructMember(QualType T, IdentifierExpr* I);
     void analyseOffsetof(BuiltinExpr* expr);
     void analyseArrayType(VarDecl* V, QualType T);
     void analyseArraySizeExpr(ArrayType* AT);
