@@ -1,0 +1,12 @@
+// @warnings{no-unused}
+module test;
+
+type Struct struct {
+    u32 m;
+    struct sub {
+        u32 m2;
+    }
+}
+
+const u32 Offset = offsetof(Struct, m);
+
