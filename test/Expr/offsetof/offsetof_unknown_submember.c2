@@ -1,0 +1,14 @@
+// @warnings{no-unused}
+module test;
+
+type Struct struct {
+    u32 m;
+    struct sub {
+        u32 n;
+    }
+}
+
+func void test1() {
+    u32 off1 = offsetof(Struct, s.y);    // @error{no member named 'y' in '(struct)sub'}
+}
+

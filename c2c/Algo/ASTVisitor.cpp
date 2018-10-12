@@ -298,9 +298,15 @@ void ASTVisitor::checkExpr(const Expr* E) {
         checkExpr(cast<UnaryOperator>(E)->getExpr());
         break;
     case EXPR_BUILTIN:
-        // TODO FIX
-        checkExpr(cast<BuiltinExpr>(E)->getExpr());
+    {
+        const BuiltinExpr* B = cast<BuiltinExpr>(E);
+        printf("----\n");
+        B->getStructType().dump();
+        // NOTE: not unresolved type anymore, but structtype! How to handle?
+        checkType(B->getStructType(), true);
+        checkExpr(B->getExpr());
         break;
+    }
     case EXPR_ARRAYSUBSCRIPT:
     {
         const ArraySubscriptExpr* A = cast<ArraySubscriptExpr>(E);
