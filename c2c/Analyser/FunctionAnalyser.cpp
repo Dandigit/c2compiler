@@ -1227,6 +1227,8 @@ void FunctionAnalyser::analyseOffsetof(BuiltinExpr* B) {
 
     QualType T = TR.resolveType(B->getStructType(), false);
     if (!T.isValid()) return;
+    // TODO use location of Type
+    TR.checkOpaqueType(B->getLocation(), false, T);
 
     if (!T.isStructType()) {
         StringBuilder buf;
