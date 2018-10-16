@@ -9,6 +9,6 @@ type Struct struct {
 }
 
 func void test1() {
-    u32 off1 = offsetof(Struct, s.y);    // @error{no member named 'y' in '(struct)sub'}
+    u32 off1 = offsetof(Struct, sub.y);    // @error{no member named 'y' in '(struct)sub'}
 }
 
