@@ -480,6 +480,19 @@ void FunctionAnalyser::analyseReturnStmt(Stmt* stmt) {
         } else {
             if (type.isValid()) {
                 EA.check(rtype, value);
+                if (value->getCTC() == CTC_FULL) {
+                    // TODO don't calculate twice, but calculate, check and return value
+                    LiteralAnalyser LA(Diags);
+                    llvm::APSInt val = LA.checkLiterals(value);
+                    // TODO need APSInt in IntegerLiteral to support negative numbers
+                    // TODO replace value in AST with IntegerLiteral
+                    // NOTE: overwrite old AST part with new IntegerLiteral (will always fit)
+                    printf("REPLACING part of AST\n");
+                    value->dump();
+                    IntegerLiteral* replacement = new((void*)value) IntegerLiteral(value->getLocation(), val, 10);
+                    analyseExpr(replacement, RHS); // TO set Type etc
+                    replacement->dump();
+                }
             }
         }
     } else {
